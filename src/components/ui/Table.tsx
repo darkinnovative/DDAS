@@ -90,11 +90,15 @@ export function TableHeaderCell({
 interface TableCellProps {
   children: React.ReactNode;
   className?: string;
+  colSpan?: number;
 }
 
-export function TableCell({ children, className = '' }: TableCellProps) {
+export function TableCell({ children, className = '', colSpan }: TableCellProps) {
   return (
-    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${className}`}>
+    <td 
+      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${className}`}
+      colSpan={colSpan}
+    >
       {children}
     </td>
   );
