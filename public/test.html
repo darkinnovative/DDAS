@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .test-box { background: white; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1 style="color: blue;">Static Test Page</h1>
+        <p>This is a simple HTML test page to verify the server is working.</p>
+        <p id="timestamp"></p>
+        <script>
+            document.getElementById('timestamp').textContent = 'Current time: ' + new Date().toLocaleString();
+            console.log('Static test page loaded successfully');
+        </script>
+    </div>
+</body>
+</html>

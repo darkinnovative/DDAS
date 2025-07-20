@@ -17,6 +17,40 @@ export interface Customer {
   updatedAt: Date;
 }
 
+export interface Vendor {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  contactPerson?: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  gstNumber?: string;
+  stateCode: string;
+  panNumber?: string;
+  bankDetails?: {
+    accountNumber: string;
+    bankName: string;
+    branchName: string;
+    ifscCode: string;
+  };
+  category: 'goods' | 'services' | 'both';
+  paymentTerms: 'immediate' | 'net15' | 'net30' | 'net45' | 'net60';
+  creditLimit?: number;
+  isActive: boolean;
+  rating: 1 | 2 | 3 | 4 | 5;
+  notes?: string;
+  totalPurchases: number;
+  lastPurchaseDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface InvoiceItem {
   id: string;
   description: string;

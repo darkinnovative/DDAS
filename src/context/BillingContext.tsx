@@ -1,12 +1,13 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Invoice, Customer, Payment, DashboardStats } from '../types/billing';
+import type { Invoice, Customer, Payment, DashboardStats, Vendor } from '../types/billing';
 import { v4 as uuidv4 } from 'uuid';
 import { generateSampleData } from '../utils/sampleData';
 
 interface BillingState {
   invoices: Invoice[];
   customers: Customer[];
+  vendors: Vendor[];
   payments: Payment[];
   loading: boolean;
   error: string | null;
@@ -15,13 +16,16 @@ interface BillingState {
 type BillingAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'LOAD_SAMPLE_DATA'; payload: { customers: Customer[]; invoices: Invoice[]; payments: Payment[] } }
+  | { type: 'LOAD_SAMPLE_DATA'; payload: { customers: Customer[]; vendors: Vendor[]; invoices: Invoice[]; payments: Payment[] } }
   | { type: 'ADD_INVOICE'; payload: Invoice }
   | { type: 'UPDATE_INVOICE'; payload: Invoice }
   | { type: 'DELETE_INVOICE'; payload: string }
   | { type: 'ADD_CUSTOMER'; payload: Customer }
   | { type: 'UPDATE_CUSTOMER'; payload: Customer }
   | { type: 'DELETE_CUSTOMER'; payload: string }
+  | { type: 'ADD_VENDOR'; payload: Vendor }
+  | { type: 'UPDATE_VENDOR'; payload: Vendor }
+  | { type: 'DELETE_VENDOR'; payload: string }
   | { type: 'ADD_PAYMENT'; payload: Payment }
   | { type: 'UPDATE_PAYMENT'; payload: Payment }
   | { type: 'DELETE_PAYMENT'; payload: string };
@@ -29,6 +33,7 @@ type BillingAction =
 const initialState: BillingState = {
   invoices: [],
   customers: [],
+  vendors: [],
   payments: [],
   loading: false,
   error: null,
@@ -44,6 +49,7 @@ function billingReducer(state: BillingState, action: BillingAction): BillingStat
       return {
         ...state,
         customers: action.payload.customers,
+        vendors: action.payload.vendors,
         invoices: action.payload.invoices,
         payments: action.payload.payments,
       };
@@ -75,6 +81,20 @@ function billingReducer(state: BillingState, action: BillingAction): BillingStat
         ...state,
         customers: state.customers.filter(customer => customer.id !== action.payload),
       };
+    case 'ADD_VENDOR':
+      return { ...state, vendors: [...state.vendors, action.payload] };
+    case 'UPDATE_VENDOR':
+      return {
+        ...state,
+        vendors: state.vendors.map(vendor =>
+          vendor.id === action.payload.id ? action.payload : vendor
+        ),
+      };
+    case 'DELETE_VENDOR':
+      return {
+        ...state,
+        vendors: state.vendors.filter(vendor => vendor.id !== action.payload),
+      };
     case 'ADD_PAYMENT':
       return { ...state, payments: [...state.payments, action.payload] };
     case 'UPDATE_PAYMENT':
@@ -101,6 +121,9 @@ interface BillingContextType extends BillingState {
   addCustomer: (customer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateCustomer: (customer: Customer) => void;
   deleteCustomer: (id: string) => void;
+  addVendor: (vendor: Omit<Vendor, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateVendor: (vendor: Vendor) => void;
+  deleteVendor: (id: string) => void;
   addPayment: (payment: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updatePayment: (payment: Payment) => void;
   deletePayment: (id: string) => void;
@@ -115,7 +138,12 @@ export function BillingProvider({ children }: { children: ReactNode }) {
   // Load sample data on mount
   useEffect(() => {
     const sampleData = generateSampleData();
-    dispatch({ type: 'LOAD_SAMPLE_DATA', payload: sampleData });
+    dispatch({ type: 'LOAD_SAMPLE_DATA', payload: {
+      customers: sampleData.customers,
+      vendors: sampleData.vendors,
+      invoices: sampleData.invoices,
+      payments: sampleData.payments
+    }});
   }, []);
 
   const addInvoice = (invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -154,6 +182,25 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   const deleteCustomer = (id: string) => {
     dispatch({ type: 'DELETE_CUSTOMER', payload: id });
+  };
+
+  const addVendor = (vendor: Omit<Vendor, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newVendor: Vendor = {
+      ...vendor,
+      id: uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    dispatch({ type: 'ADD_VENDOR', payload: newVendor });
+  };
+
+  const updateVendor = (vendor: Vendor) => {
+    const updatedVendor = { ...vendor, updatedAt: new Date() };
+    dispatch({ type: 'UPDATE_VENDOR', payload: updatedVendor });
+  };
+
+  const deleteVendor = (id: string) => {
+    dispatch({ type: 'DELETE_VENDOR', payload: id });
   };
 
   const addPayment = (payment: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -218,6 +265,9 @@ export function BillingProvider({ children }: { children: ReactNode }) {
         addCustomer,
         updateCustomer,
         deleteCustomer,
+        addVendor,
+        updateVendor,
+        deleteVendor,
         addPayment,
         updatePayment,
         deletePayment,

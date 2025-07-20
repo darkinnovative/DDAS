@@ -1,4 +1,4 @@
-import type { Customer, Invoice, Payment } from '../types/billing';
+import type { Customer, Invoice, Payment, Vendor } from '../types/billing';
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, subDays } from 'date-fns';
 
@@ -210,5 +210,168 @@ export function generateSampleData() {
     }
   ];
 
-  return { customers, invoices, payments };
+  // Sample vendors
+  const vendors: Vendor[] = [
+    {
+      id: uuidv4(),
+      name: 'Office Supplies Co.',
+      email: 'sales@officesupplies.in',
+      phone: '+91 9876543210',
+      contactPerson: 'Rajesh Kumar',
+      address: {
+        street: '123 Industrial Area',
+        city: 'Delhi',
+        state: 'Delhi',
+        zipCode: '110001',
+        country: 'India'
+      },
+      gstNumber: '07ABCDE1234F1Z5',
+      stateCode: '07',
+      panNumber: 'ABCDE1234F',
+      bankDetails: {
+        accountNumber: '1234567890',
+        bankName: 'State Bank of India',
+        branchName: 'Connaught Place',
+        ifscCode: 'SBIN0000123'
+      },
+      category: 'goods',
+      paymentTerms: 'net30',
+      creditLimit: 500000,
+      isActive: true,
+      rating: 4,
+      notes: 'Reliable supplier for office equipment',
+      totalPurchases: 250000,
+      lastPurchaseDate: subDays(new Date(), 15),
+      createdAt: subDays(new Date(), 90),
+      updatedAt: subDays(new Date(), 15),
+    },
+    {
+      id: uuidv4(),
+      name: 'IT Services Mumbai',
+      email: 'billing@itservices.in',
+      phone: '+91 9123456789',
+      contactPerson: 'Priya Sharma',
+      address: {
+        street: '456 Tech Hub',
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        zipCode: '400001',
+        country: 'India'
+      },
+      gstNumber: '27FGHIJ5678K1Z2',
+      stateCode: '27',
+      panNumber: 'FGHIJ5678K',
+      bankDetails: {
+        accountNumber: '9876543210',
+        bankName: 'HDFC Bank',
+        branchName: 'Bandra Kurla Complex',
+        ifscCode: 'HDFC0000456'
+      },
+      category: 'services',
+      paymentTerms: 'net15',
+      creditLimit: 300000,
+      isActive: true,
+      rating: 5,
+      notes: 'Excellent service provider for IT solutions',
+      totalPurchases: 180000,
+      lastPurchaseDate: subDays(new Date(), 7),
+      createdAt: subDays(new Date(), 60),
+      updatedAt: subDays(new Date(), 7),
+    },
+    {
+      id: uuidv4(),
+      name: 'Raw Materials Pvt Ltd',
+      email: 'accounts@rawmaterials.in',
+      phone: '+91 8765432109',
+      contactPerson: 'Amit Patel',
+      address: {
+        street: '789 Industrial Zone',
+        city: 'Ahmedabad',
+        state: 'Gujarat',
+        zipCode: '380001',
+        country: 'India'
+      },
+      gstNumber: '24KLMNO9012P1Z3',
+      stateCode: '24',
+      panNumber: 'KLMNO9012P',
+      bankDetails: {
+        accountNumber: '5432109876',
+        bankName: 'ICICI Bank',
+        branchName: 'CG Road',
+        ifscCode: 'ICIC0000789'
+      },
+      category: 'goods',
+      paymentTerms: 'net45',
+      creditLimit: 750000,
+      isActive: true,
+      rating: 3,
+      notes: 'Good quality materials, sometimes delayed delivery',
+      totalPurchases: 420000,
+      lastPurchaseDate: subDays(new Date(), 22),
+      createdAt: subDays(new Date(), 120),
+      updatedAt: subDays(new Date(), 22),
+    },
+    {
+      id: uuidv4(),
+      name: 'Logistics Express',
+      email: 'operations@logisticsexpress.in',
+      phone: '+91 7654321098',
+      contactPerson: 'Sunita Reddy',
+      address: {
+        street: '321 Transport Nagar',
+        city: 'Hyderabad',
+        state: 'Telangana',
+        zipCode: '500001',
+        country: 'India'
+      },
+      gstNumber: '36QRSTU3456V1Z4',
+      stateCode: '36',
+      panNumber: 'QRSTU3456V',
+      bankDetails: {
+        accountNumber: '6789012345',
+        bankName: 'Axis Bank',
+        branchName: 'Secunderabad',
+        ifscCode: 'UTIB0000321'
+      },
+      category: 'services',
+      paymentTerms: 'immediate',
+      creditLimit: 200000,
+      isActive: true,
+      rating: 4,
+      notes: 'Fast and reliable logistics partner',
+      totalPurchases: 95000,
+      lastPurchaseDate: subDays(new Date(), 3),
+      createdAt: subDays(new Date(), 45),
+      updatedAt: subDays(new Date(), 3),
+    },
+    {
+      id: uuidv4(),
+      name: 'Tech Equipment Suppliers',
+      email: 'sales@techequipment.in',
+      phone: '+91 6543210987',
+      contactPerson: 'Vikash Singh',
+      address: {
+        street: '654 Electronic Market',
+        city: 'Pune',
+        state: 'Maharashtra',
+        zipCode: '411001',
+        country: 'India'
+      },
+      gstNumber: '27WXYZ7890A1Z5',
+      stateCode: '27',
+      panNumber: 'WXYZ7890A',
+      category: 'both',
+      paymentTerms: 'net60',
+      creditLimit: 400000,
+      isActive: false,
+      rating: 2,
+      notes: 'Currently on hold due to quality issues',
+      totalPurchases: 75000,
+      lastPurchaseDate: subDays(new Date(), 60),
+      createdAt: subDays(new Date(), 180),
+      updatedAt: subDays(new Date(), 60),
+    }
+  ];
+
+  return { customers, vendors, invoices, payments };
 }
