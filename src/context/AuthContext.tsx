@@ -21,8 +21,20 @@ type AuthAction =
   | { type: 'SET_DARK_MODE'; payload: boolean };
 
 const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
+  user: {
+    id: '1',
+    username: 'admin',
+    email: 'admin@ddas.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    avatar: undefined,
+    isActive: true,
+    lastLogin: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as User,
+  isAuthenticated: true,
   loading: false,
   error: null,
   theme: 'system',
@@ -73,6 +85,7 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  console.log('AuthProvider is initializing...');
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   // Update dark mode based on theme preference

@@ -71,7 +71,7 @@ export function Settings() {
                   className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2
                            ${theme === 'light' ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'}`}
                 >
-                  <Sun size={24} className={theme === 'light' ? 'text-violet-600' : 'text-gray-400 dark:text-gray-500'} />
+                  <Sun size={24} className={theme === 'light' ? 'text-violet-600' : 'text-gray-400'} />
                   <span className={`font-medium text-sm ${theme === 'light' ? 'text-violet-600' : 'text-gray-600 dark:text-gray-400'}`}>
                     Light
                   </span>
@@ -81,7 +81,7 @@ export function Settings() {
                   className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2
                            ${theme === 'dark' ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'}`}
                 >
-                  <Moon size={24} className={theme === 'dark' ? 'text-violet-600' : 'text-gray-400 dark:text-gray-500'} />
+                  <Moon size={24} className={theme === 'dark' ? 'text-violet-600' : 'text-gray-400'} />
                   <span className={`font-medium text-sm ${theme === 'dark' ? 'text-violet-600' : 'text-gray-600 dark:text-gray-400'}`}>
                     Dark
                   </span>
@@ -91,7 +91,7 @@ export function Settings() {
                   className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2
                            ${theme === 'system' ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'}`}
                 >
-                  <Monitor size={24} className={theme === 'system' ? 'text-violet-600' : 'text-gray-400 dark:text-gray-500'} />
+                  <Monitor size={24} className={theme === 'system' ? 'text-violet-600' : 'text-gray-400'} />
                   <span className={`font-medium text-sm ${theme === 'system' ? 'text-violet-600' : 'text-gray-600 dark:text-gray-400'}`}>
                     System
                   </span>
@@ -107,9 +107,9 @@ export function Settings() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-8 text-center">
             <div className="mb-4">
               {activeTab === 'security' ? (
-                <Shield size={48} className="mx-auto text-gray-400 dark:text-gray-500" />
+                <Shield size={48} className="mx-auto text-gray-400" />
               ) : (
-                <Bell size={48} className="mx-auto text-gray-400 dark:text-gray-500" />
+                <Bell size={48} className="mx-auto text-gray-400" />
               )}
             </div>
             <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">

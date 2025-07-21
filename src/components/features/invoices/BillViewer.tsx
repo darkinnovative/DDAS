@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
 import { useBilling } from '../../../context/BillingContext';
 import { BillLayout } from './BillLayout';
-import { X, FileText, Eye } from 'lucide-react';
+import { X, FileText } from 'lucide-react';
 import type { Invoice } from '../../../types/billing';
 
 interface BillViewerProps {
@@ -54,7 +53,6 @@ interface InvoiceSelectModalProps {
 
 export function InvoiceSelectModal({ isOpen, onClose, onSelectInvoice }: InvoiceSelectModalProps) {
   const { invoices, customers } = useBilling();
-  const { isDarkMode } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredInvoices = invoices.filter(invoice => {

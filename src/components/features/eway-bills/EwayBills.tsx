@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useEwayBill } from '../../../context/EwayBillContext';
-import { useBilling } from '../../../context/BillingContext';
 import { 
   Plus, 
   Search, 
@@ -9,7 +8,6 @@ import {
   Eye, 
   Edit, 
   X as XIcon, 
-  Calendar,
   MapPin,
   Package,
   AlertCircle,
@@ -24,7 +22,6 @@ import type { EwayBill } from '../../../types/eway';
 
 export function EwayBills() {
   const { ewayBills, getEwayBillSummary, cancelEwayBill } = useEwayBill();
-  const { invoices } = useBilling();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);

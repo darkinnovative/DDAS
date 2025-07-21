@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
 import { useBilling } from '../../../context/BillingContext';
 import { format } from 'date-fns';
 import { 
@@ -19,7 +18,7 @@ import {
   MapPin,
   Globe
 } from 'lucide-react';
-import type { Invoice, InvoiceItem } from '../../../types/billing';
+import type { Invoice } from '../../../types/billing';
 
 interface BillLayoutProps {
   invoice: Invoice;
@@ -27,7 +26,6 @@ interface BillLayoutProps {
 }
 
 export function BillLayout({ invoice, onClose }: BillLayoutProps) {
-  const { isDarkMode } = useAuth();
   const { customers } = useBilling();
   const [layoutType, setLayoutType] = useState<'standard' | 'modern' | 'compact'>('standard');
   

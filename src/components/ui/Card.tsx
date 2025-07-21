@@ -13,7 +13,7 @@ export function Card({
   hover = false, 
   padding = 'md' 
 }: CardProps) {
-  const baseStyles = 'bg-white rounded-xl shadow-lg border border-gray-100';
+  const baseStyles = 'bg-white rounded-xl shadow-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700';
   const hoverStyles = hover ? 'hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1' : '';
   
   const paddingStyles = {

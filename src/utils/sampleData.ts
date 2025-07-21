@@ -1,4 +1,4 @@
-import type { Customer, Invoice, Payment, Vendor } from '../types/billing';
+import type { Customer, Invoice, Payment, Vendor, Company } from '../types/billing';
 import type { InventoryItem, InventoryCategory } from '../types/inventory';
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, subDays } from 'date-fns';
@@ -649,5 +649,35 @@ export function generateSampleData() {
     }
   ];
 
-  return { customers, vendors, invoices, payments, inventoryItems, inventoryCategories };
+  // Sample company
+  const company: Company = {
+    id: 'company-1',
+    name: 'DDAS Solutions Pvt Ltd',
+    address: {
+      street: '456 Business District',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      zipCode: '400001',
+      country: 'India'
+    },
+    phone: '+91 9876543210',
+    email: 'info@ddassolutions.com',
+    website: 'https://www.ddassolutions.com',
+    taxId: 'DDAS123456789',
+    gstNumber: '27DDASS1234F1Z5',
+    panNumber: 'DDASS1234F',
+    stateCode: '27',
+    registrationNumber: 'CIN-U72200MH2024PTC123456',
+    logo: '',
+    financialYear: {
+      startDate: new Date('2024-04-01'),
+      endDate: new Date('2025-03-31')
+    },
+    currency: 'INR',
+    taxRate: 18,
+    createdAt: subDays(new Date(), 90),
+    updatedAt: new Date()
+  };
+
+  return { customers, vendors, invoices, payments, inventoryItems, inventoryCategories, company };
 }

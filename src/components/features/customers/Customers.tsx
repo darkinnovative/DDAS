@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import { useBilling } from '../../../context/BillingContext';
 import type { Customer } from '../../../types/billing';
 
-// Indian states for dropdown
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Indian states for dropdown - kept for future use
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/*
 const indianStates = [
   { code: '01', name: 'Jammu and Kashmir' },
   { code: '02', name: 'Himachal Pradesh' },
@@ -43,6 +44,7 @@ const indianStates = [
   { code: '36', name: 'Telangana' },
   { code: '37', name: 'Andhra Pradesh (New)' }
 ];
+*/
 
 import { 
   Plus, 

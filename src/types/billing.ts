@@ -93,8 +93,9 @@ export interface Payment {
   invoiceId: string;
   invoice?: Invoice;
   amount: number;
-  paymentMethod: 'cash' | 'credit_card' | 'bank_transfer' | 'check' | 'other';
+  paymentMethod: 'cash' | 'credit_card' | 'bank_transfer' | 'upi' | 'check' | 'other';
   transactionId?: string;
+  reference?: string;
   paymentDate: Date;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
   notes?: string;

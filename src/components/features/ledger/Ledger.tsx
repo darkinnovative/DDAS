@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
-import { Plus, Search, Filter, BookOpen, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Plus, Search, BookOpen, TrendingUp, TrendingDown } from 'lucide-react';
 import { format } from 'date-fns';
+import { Card } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import { Input } from '../../ui/Input';
+import { Table, TableHeader, TableBody, TableRow, TableHeaderCell, TableCell } from '../../ui/Table';
 
 interface LedgerAccount {
   id: string;
@@ -25,7 +28,6 @@ interface LedgerEntry {
 }
 
 export function Ledger() {
-  const { isDarkMode } = useAuth();
   const [activeTab, setActiveTab] = useState<'accounts' | 'entries'>('accounts');
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -91,9 +93,9 @@ export function Ledger() {
   ]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
     }).format(Math.abs(amount));
   };
 
@@ -139,161 +141,231 @@ export function Ledger() {
     .reduce((sum, a) => sum + a.balance, 0);
 
   return (
-    <div className="ledger">
-      <div className="page-header">
-        <h1>General Ledger</h1>
-        <button className="btn btn-primary">
-          <Plus size={20} />
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">General Ledger</h1>
+          <p className="text-gray-600">Manage accounts and journal entries</p>
+        </div>
+        <Button>
+          <Plus size={16} className="mr-2" />
           New Journal Entry
-        </button>
+        </Button>
       </div>
 
-      <div className="ledger-summary">
-        <div className="summary-card">
-          <div className="summary-icon assets">
-            <TrendingUp size={24} />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card className="p-6">
+          <div className="flex items-center">
+            <div className="p-3 bg-green-100 rounded-lg mr-4">
+              <TrendingUp className="h-8 w-8 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600">Total Assets</h3>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalAssets)}</p>
+            </div>
           </div>
-          <div className="summary-content">
-            <h3>Total Assets</h3>
-            <p className="summary-amount">{formatCurrency(totalAssets)}</p>
-          </div>
-        </div>
+        </Card>
 
-        <div className="summary-card">
-          <div className="summary-icon liabilities">
-            <TrendingDown size={24} />
+        <Card className="p-6">
+          <div className="flex items-center">
+            <div className="p-3 bg-red-100 rounded-lg mr-4">
+              <TrendingDown className="h-8 w-8 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600">Total Liabilities</h3>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalLiabilities)}</p>
+            </div>
           </div>
-          <div className="summary-content">
-            <h3>Total Liabilities</h3>
-            <p className="summary-amount">{formatCurrency(totalLiabilities)}</p>
-          </div>
-        </div>
+        </Card>
 
-        <div className="summary-card">
-          <div className="summary-icon equity">
-            <BookOpen size={24} />
+        <Card className="p-6">
+          <div className="flex items-center">
+            <div className="p-3 bg-purple-100 rounded-lg mr-4">
+              <BookOpen className="h-8 w-8 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600">Total Equity</h3>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalEquity)}</p>
+            </div>
           </div>
-          <div className="summary-content">
-            <h3>Total Equity</h3>
-            <p className="summary-amount">{formatCurrency(totalEquity)}</p>
-          </div>
-        </div>
+        </Card>
       </div>
 
-      <div className="ledger-tabs">
-        <button 
-          className={`tab-button ${activeTab === 'accounts' ? 'active' : ''}`}
-          onClick={() => setActiveTab('accounts')}
-        >
-          Chart of Accounts
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'entries' ? 'active' : ''}`}
-          onClick={() => setActiveTab('entries')}
-        >
-          Journal Entries
-        </button>
-      </div>
-
-      <div className="filters">
-        <div className="search-box">
-          <Search size={20} />
-          <input
-            type="text"
-            placeholder={activeTab === 'accounts' ? 'Search accounts...' : 'Search entries...'}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        {activeTab === 'accounts' && (
-          <select 
-            value={typeFilter} 
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="type-filter"
+      {/* Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          <button 
+            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'accounts'
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+            onClick={() => setActiveTab('accounts')}
           >
-            {accountTypes.map(type => (
-              <option key={type} value={type}>
-                {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
-              </option>
-            ))}
-          </select>
-        )}
+            Chart of Accounts
+          </button>
+          <button 
+            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'entries'
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+            onClick={() => setActiveTab('entries')}
+          >
+            Journal Entries
+          </button>
+        </nav>
       </div>
 
-      <div className="table-container">
-        {activeTab === 'accounts' ? (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Account Code</th>
-                <th>Account Name</th>
-                <th>Type</th>
-                <th>Balance</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAccounts.map((account) => (
-                <tr key={account.id}>
-                  <td className="account-code">{account.code}</td>
-                  <td className="account-name">{account.name}</td>
-                  <td>
-                    <span 
-                      className="account-type-badge"
-                      style={{ backgroundColor: getAccountTypeColor(account.type) }}
-                    >
-                      {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
-                    </span>
-                  </td>
-                  <td className="balance">
-                    {account.type === 'liability' || account.type === 'equity' || account.type === 'income' 
-                      ? `(${formatCurrency(account.balance)})` 
-                      : formatCurrency(account.balance)
-                    }
-                  </td>
-                  <td>
-                    <span className={`status ${account.isActive ? 'active' : 'inactive'}`}>
-                      {account.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Reference</th>
-                <th>Description</th>
-                <th>Account</th>
-                <th>Debit</th>
-                <th>Credit</th>
-                <th>Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEntries.map((entry) => (
-                <tr key={entry.id}>
-                  <td>{format(entry.date, 'MMM dd, yyyy')}</td>
-                  <td className="reference">{entry.reference || '-'}</td>
-                  <td>{entry.description}</td>
-                  <td className="account-name">{entry.accountName}</td>
-                  <td className="debit">
-                    {entry.debit > 0 ? formatCurrency(entry.debit) : '-'}
-                  </td>
-                  <td className="credit">
-                    {entry.credit > 0 ? formatCurrency(entry.credit) : '-'}
-                  </td>
-                  <td className="balance">{formatCurrency(entry.balance)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* Filters */}
+      <Card className="p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={activeTab === 'accounts' ? 'Search accounts...' : 'Search entries...'}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          
+          {activeTab === 'accounts' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
+              <select 
+                value={typeFilter} 
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                {accountTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="flex items-end">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm('');
+                setTypeFilter('all');
+              }}
+              className="w-full"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Data Table */}
+      <Card>
+        <div className="p-4">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                {activeTab === 'accounts' ? (
+                  <TableRow>
+                    <TableHeaderCell>Account Code</TableHeaderCell>
+                    <TableHeaderCell>Account Name</TableHeaderCell>
+                    <TableHeaderCell>Type</TableHeaderCell>
+                    <TableHeaderCell>Balance</TableHeaderCell>
+                    <TableHeaderCell>Status</TableHeaderCell>
+                  </TableRow>
+                ) : (
+                  <TableRow>
+                    <TableHeaderCell>Date</TableHeaderCell>
+                    <TableHeaderCell>Reference</TableHeaderCell>
+                    <TableHeaderCell>Description</TableHeaderCell>
+                    <TableHeaderCell>Account</TableHeaderCell>
+                    <TableHeaderCell>Debit</TableHeaderCell>
+                    <TableHeaderCell>Credit</TableHeaderCell>
+                    <TableHeaderCell>Balance</TableHeaderCell>
+                  </TableRow>
+                )}
+              </TableHeader>
+              <TableBody>
+                {activeTab === 'accounts' ? (
+                  filteredAccounts.map((account) => (
+                    <TableRow key={account.id}>
+                      <TableCell>
+                        <span className="font-mono text-sm font-medium">{account.code}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-gray-900">{account.name}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span 
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white"
+                          style={{ backgroundColor: getAccountTypeColor(account.type) }}
+                        >
+                          {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium">
+                          {account.type === 'liability' || account.type === 'equity' || account.type === 'income' 
+                            ? `(${formatCurrency(account.balance)})` 
+                            : formatCurrency(account.balance)
+                          }
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          account.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {account.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  filteredEntries.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell>
+                        <span className="text-sm text-gray-900">{format(entry.date, 'MMM dd, yyyy')}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono text-sm text-blue-600">{entry.reference || '-'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-gray-900">{entry.description}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-gray-900">{entry.accountName}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-green-600">
+                          {entry.debit > 0 ? formatCurrency(entry.debit) : '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-red-600">
+                          {entry.credit > 0 ? formatCurrency(entry.credit) : '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-gray-900">{formatCurrency(entry.balance)}</span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

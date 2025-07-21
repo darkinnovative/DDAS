@@ -1,5 +1,4 @@
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -7,7 +6,6 @@ import {
   CreditCard, 
   Package,
   BookOpen,
-  TrendingUp,
   Settings,
   Building2,
   BarChart3,
@@ -17,7 +15,12 @@ import {
   ShoppingCart,
   UserCheck,
   Truck,
-  Receipt
+  Receipt,
+  FileBarChart,
+  ShoppingBag,
+  FileSpreadsheet,
+  ClipboardList,
+  Box
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,13 +28,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed }: SidebarProps) {
-  const { isDarkMode } = useAuth();
   const menuItems = [
     {
       section: 'Overview',
       items: [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-        { icon: TrendingUp, label: 'Reports', path: '/reports' },
       ]
     },
     {
@@ -54,17 +55,28 @@ export function Sidebar({ collapsed }: SidebarProps) {
     {
       section: 'Inventory',
       items: [
-        { icon: Package, label: 'Items', path: '/items' },
+        { icon: Package, label: 'Inventory', path: '/inventory' },
+        { icon: Box, label: 'Items', path: '/items' },
         { icon: BarChart3, label: 'Stock Report', path: '/stock-report' },
       ]
     },
     {
       section: 'Accounting',
       items: [
-        { icon: BookOpen, label: 'Chart of Accounts', path: '/chart-of-accounts' },
+        { icon: BookOpen, label: 'Ledger', path: '/ledger' },
+        { icon: BarChart3, label: 'Balance Sheet', path: '/balance-sheet' },
         { icon: Calculator, label: 'Journal Entries', path: '/journal-entries' },
         { icon: DollarSign, label: 'Trial Balance', path: '/trial-balance' },
         { icon: PieChart, label: 'Profit & Loss', path: '/profit-loss' },
+      ]
+    },
+    {
+      section: 'Reports',
+      items: [
+        { icon: FileBarChart, label: 'Sales Reports', path: '/reports/sales' },
+        { icon: ShoppingBag, label: 'Purchase Reports', path: '/reports/purchase' },
+        { icon: FileSpreadsheet, label: 'GSTR1', path: '/reports/gstr1' },
+        { icon: ClipboardList, label: 'GSTR3B', path: '/reports/gstr3b' },
       ]
     },
     {
