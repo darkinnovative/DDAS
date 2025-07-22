@@ -19,8 +19,7 @@ import {
   FileBarChart,
   ShoppingBag,
   FileSpreadsheet,
-  ClipboardList,
-  Box
+  ClipboardList
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -56,7 +55,6 @@ export function Sidebar({ collapsed }: SidebarProps) {
       section: 'Inventory',
       items: [
         { icon: Package, label: 'Inventory', path: '/inventory' },
-        { icon: Box, label: 'Items', path: '/items' },
         { icon: BarChart3, label: 'Stock Report', path: '/stock-report' },
       ]
     },

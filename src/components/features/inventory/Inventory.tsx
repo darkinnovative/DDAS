@@ -1,558 +1,718 @@
 import { useState } from 'react';
-import { 
-  Package, 
-  Plus, 
-  Search, 
-  Filter, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle,
-  BarChart3,
-  FileText,
-  Eye,
-  Edit,
-  Trash2,
-  Download,
-  Upload
-} from 'lucide-react';
-import { useInventory } from '../../../context/InventoryContext';
-import { Button } from '../../ui/Button';
+import { Plus, Search, Edit, Trash2, Package, Eye, Filter, TrendingUp, AlertTriangle, BarChart3 } from 'lucide-react';
 import { Card } from '../../ui/Card';
+import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
-import { Table, TableHeader, TableBody, TableRow, TableHeaderCell, TableCell } from '../../ui/Table';
-import { ItemForm } from './ItemForm';
-import type { InventoryItem } from '../../../types/inventory';
+
+interface InventoryItem {
+  id: string;
+  name: string;
+  description: string;
+  sku: string;
+  category: string;
+  unit: string;
+  hsnSacCode: string;
+  costPrice: number;
+  sellingPrice: number;
+  currentStock: number;
+  minStock: number;
+  maxStock: number;
+  reorderLevel: number;
+  status: 'Active' | 'Inactive';
+  createdAt: string;
+}
+
+interface InventoryFormData {
+  name: string;
+  description: string;
+  sku: string;
+  category: string;
+  unit: string;
+  hsnSacCode: string;
+  costPrice: number;
+  sellingPrice: number;
+  currentStock: number;
+  minStock: number;
+  maxStock: number;
+  reorderLevel: number;
+  status: 'Active' | 'Inactive';
+}
+
+// Sample data
+const initialInventoryData: InventoryItem[] = [
+  {
+    id: 'INV001',
+    name: 'Office Chair Premium',
+    description: 'Ergonomic office chair with lumbar support and adjustable height',
+    sku: 'CHAIR-001',
+    category: 'Furniture',
+    unit: 'Pieces',
+    hsnSacCode: '9401',
+    costPrice: 6500,
+    sellingPrice: 8500,
+    currentStock: 25,
+    minStock: 5,
+    maxStock: 100,
+    reorderLevel: 10,
+    status: 'Active',
+    createdAt: '2025-01-15'
+  },
+  {
+    id: 'INV002',
+    name: 'Laptop Stand Aluminum',
+    description: 'Adjustable aluminum laptop stand with cooling design',
+    sku: 'LAPTOP-STAND-001',
+    category: 'Electronics',
+    unit: 'Pieces',
+    hsnSacCode: '8473',
+    costPrice: 1800,
+    sellingPrice: 2500,
+    currentStock: 8,
+    minStock: 10,
+    maxStock: 50,
+    reorderLevel: 15,
+    status: 'Active',
+    createdAt: '2025-01-14'
+  },
+  {
+    id: 'INV003',
+    name: 'Business Consulting',
+    description: 'Professional business consulting service per hour',
+    sku: 'CONSULT-001',
+    category: 'Services',
+    unit: 'Hours',
+    hsnSacCode: '9983',
+    costPrice: 0,
+    sellingPrice: 3000,
+    currentStock: 0,
+    minStock: 0,
+    maxStock: 0,
+    reorderLevel: 0,
+    status: 'Active',
+    createdAt: '2025-01-13'
+  },
+  {
+    id: 'INV004',
+    name: 'Wireless Mouse',
+    description: 'Ergonomic wireless mouse with USB receiver',
+    sku: 'MOUSE-001',
+    category: 'Electronics',
+    unit: 'Pieces',
+    hsnSacCode: '8471',
+    costPrice: 800,
+    sellingPrice: 1200,
+    currentStock: 2,
+    minStock: 15,
+    maxStock: 100,
+    reorderLevel: 20,
+    status: 'Active',
+    createdAt: '2025-01-12'
+  }
+];
 
 export function Inventory() {
-  const {
-    stats,
-    alerts,
-    filters,
-    isLoading,
-    getFilteredItems,
-    setFilters,
-    deleteItem,
-    resolveAlert,
-    exportData
-  } = useInventory();
+  const [items, setItems] = useState<InventoryItem[]>(initialInventoryData);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [viewingItem, setViewingItem] = useState<InventoryItem | null>(null);
+  const [formData, setFormData] = useState<InventoryFormData>({
+    name: '',
+    description: '',
+    sku: '',
+    category: '',
+    unit: 'Pieces',
+    hsnSacCode: '',
+    costPrice: 0,
+    sellingPrice: 0,
+    currentStock: 0,
+    minStock: 5,
+    maxStock: 100,
+    reorderLevel: 10,
+    status: 'Active'
+  });
 
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  // Get unique categories
+  const categories = Array.from(new Set(items.map(item => item.category)));
 
-  const filteredItems = getFilteredItems();
+  // Filter items
+  const filteredItems = items.filter(item => {
+    const matchesSearch = 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === '' || item.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
-  const handleSearch = (value: string) => {
-    setFilters({ ...filters, search: value });
+  // Calculate statistics
+  const totalItems = items.length;
+  const activeItems = items.filter(item => item.status === 'Active').length;
+  const lowStockItems = items.filter(item => 
+    item.currentStock <= item.reorderLevel && item.currentStock > 0
+  ).length;
+  const outOfStockItems = items.filter(item => item.currentStock === 0).length;
+  const totalValue = items.reduce((sum, item) => sum + (item.currentStock * item.sellingPrice), 0);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
-  const handleFilterChange = (key: string, value: any) => {
-    setFilters({ ...filters, [key]: value });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingItem) {
+      // Update existing item
+      setItems(items.map(item => 
+        item.id === editingItem.id 
+          ? { ...editingItem, ...formData }
+          : item
+      ));
+    } else {
+      // Add new item
+      const newItem: InventoryItem = {
+        ...formData,
+        id: `INV${String(items.length + 1).padStart(3, '0')}`,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      setItems([...items, newItem]);
+    }
+    
+    resetForm();
   };
 
-  const handleDeleteItem = (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      deleteItem(id);
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      sku: '',
+      category: '',
+      unit: 'Pieces',
+      hsnSacCode: '',
+      costPrice: 0,
+      sellingPrice: 0,
+      currentStock: 0,
+      minStock: 5,
+      maxStock: 100,
+      reorderLevel: 10,
+      status: 'Active'
+    });
+    setEditingItem(null);
+    setShowForm(false);
+  };
+
+  const handleEdit = (item: InventoryItem) => {
+    setFormData({
+      name: item.name,
+      description: item.description,
+      sku: item.sku,
+      category: item.category,
+      unit: item.unit,
+      hsnSacCode: item.hsnSacCode,
+      costPrice: item.costPrice,
+      sellingPrice: item.sellingPrice,
+      currentStock: item.currentStock,
+      minStock: item.minStock,
+      maxStock: item.maxStock,
+      reorderLevel: item.reorderLevel,
+      status: item.status
+    });
+    setEditingItem(item);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      setItems(items.filter(item => item.id !== id));
     }
   };
 
-  const getStockStatusColor = (item: InventoryItem) => {
-    if (item.currentStock === 0) return 'text-red-600 bg-red-50';
-    if (item.currentStock <= item.reorderLevel) return 'text-orange-600 bg-orange-50';
-    return 'text-green-600 bg-green-50';
+  const handleView = (item: InventoryItem) => {
+    setViewingItem(item);
+    setShowViewModal(true);
   };
 
-  const getStockStatusText = (item: InventoryItem) => {
-    if (item.currentStock === 0) return 'Out of Stock';
-    if (item.currentStock <= item.reorderLevel) return 'Low Stock';
-    return 'In Stock';
+  const clearFilters = () => {
+    setSearchTerm('');
+    setCategoryFilter('');
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-6 flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const getStockStatus = (item: InventoryItem) => {
+    if (item.currentStock === 0) {
+      return { label: 'Out of Stock', color: 'text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400' };
+    }
+    if (item.currentStock <= item.reorderLevel) {
+      return { label: 'Low Stock', color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400' };
+    }
+    return { label: 'In Stock', color: 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400' };
+  };
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
-          <p className="text-gray-600">Manage your products and stock levels</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Inventory Management</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Manage your products, stock levels, and inventory operations
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={exportData}>
-            <Download size={16} className="mr-2" />
-            Export
-          </Button>
-          <Button variant="outline">
-            <Upload size={16} className="mr-2" />
-            Import
-          </Button>
-          <Button onClick={() => setShowAddForm(true)}>
-            <Plus size={16} className="mr-2" />
-            Add Item
-          </Button>
-        </div>
+        <Button 
+          variant="primary" 
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus size={16} />
+          Add Item
+        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Package className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Items</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
-            </div>
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <Card className="p-6 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <Package className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
+          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            {totalItems}
+          </div>
+          <div className="text-gray-600 dark:text-gray-400 font-medium mt-1">Total Items</div>
         </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Stock Value</p>
-              <p className="text-2xl font-bold text-gray-900">₹{stats.totalValue.toLocaleString()}</p>
-            </div>
+        
+        <Card className="p-6 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <BarChart3 className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
+          <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+            {activeItems}
+          </div>
+          <div className="text-gray-600 dark:text-gray-400 font-medium mt-1">Active Items</div>
         </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <AlertTriangle className="h-6 w-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Low Stock</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.lowStockItems}</p>
-            </div>
+        
+        <Card className="p-6 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <AlertTriangle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
           </div>
+          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+            {lowStockItems}
+          </div>
+          <div className="text-gray-600 dark:text-gray-400 font-medium mt-1">Low Stock</div>
         </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <TrendingDown className="h-6 w-6 text-red-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Out of Stock</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.outOfStockItems}</p>
-            </div>
+        
+        <Card className="p-6 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
+          <div className="text-3xl font-bold text-red-600 dark:text-red-400">
+            {outOfStockItems}
+          </div>
+          <div className="text-gray-600 dark:text-gray-400 font-medium mt-1">Out of Stock</div>
+        </Card>
+        
+        <Card className="p-6 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <TrendingUp className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
+            {formatCurrency(totalValue)}
+          </div>
+          <div className="text-gray-600 dark:text-gray-400 font-medium mt-1">Total Value</div>
         </Card>
       </div>
 
-      {/* Alerts */}
-      {alerts.filter(alert => !alert.isResolved).length > 0 && (
-        <Card className="p-4 mb-6 border-orange-200 bg-orange-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <AlertTriangle className="h-5 w-5 text-orange-600 mr-2" />
-              <span className="font-medium text-orange-800">
-                {alerts.filter(alert => !alert.isResolved).length} Stock Alerts
-              </span>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => alerts.filter(alert => !alert.isResolved).forEach(alert => resolveAlert(alert.id))}
+      {/* Filters */}
+      <Card className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2">
+            <Input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, description, or SKU..."
+              icon={<Search size={16} />}
+            />
+          </div>
+          
+          <div>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
-              Resolve All
-            </Button>
-          </div>
-          <div className="mt-2 space-y-1">
-            {alerts.filter(alert => !alert.isResolved).slice(0, 3).map(alert => (
-              <p key={alert.id} className="text-sm text-orange-700">
-                {alert.item?.name} - {alert.alertType.replace('_', ' ')} ({alert.currentStock} units)
-              </p>
-            ))}
-            {alerts.filter(alert => !alert.isResolved).length > 3 && (
-              <p className="text-sm text-orange-600">
-                +{alerts.filter(alert => !alert.isResolved).length - 3} more alerts
-              </p>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {/* Search and Filters */}
-      <Card className="p-4 mb-6">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search items by name, SKU, or HSN code..."
-                value={filters.search || ''}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter size={16} className="mr-2" />
-            Filters
-          </Button>
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={viewMode === 'table' ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-            >
-              <FileText size={16} />
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <BarChart3 size={16} />
-            </Button>
-          </div>
-        </div>
-
-        {/* Advanced Filters */}
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                  value={filters.category || ''}
-                  onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="">All Categories</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Clothing">Clothing</option>
-                  <option value="Books">Books</option>
-                  <option value="Home">Home & Garden</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
-                <select
-                  value={filters.stockStatus || ''}
-                  onChange={(e) => handleFilterChange('stockStatus', e.target.value || undefined)}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="">All Stock</option>
-                  <option value="in_stock">In Stock</option>
-                  <option value="low_stock">Low Stock</option>
-                  <option value="out_of_stock">Out of Stock</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={filters.status || ''}
-                  onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="discontinued">Discontinued</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">GST Rate</label>
-                <select
-                  value={filters.gstRate || ''}
-                  onChange={(e) => handleFilterChange('gstRate', e.target.value ? parseFloat(e.target.value) : undefined)}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="">All GST Rates</option>
-                  <option value="0">0%</option>
-                  <option value="5">5%</option>
-                  <option value="12">12%</option>
-                  <option value="18">18%</option>
-                  <option value="28">28%</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
-                <select
-                  value={filters.warehouse || ''}
-                  onChange={(e) => handleFilterChange('warehouse', e.target.value || undefined)}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="">All Warehouses</option>
-                  <option value="Main Warehouse">Main Warehouse</option>
-                  <option value="Electronics Store">Electronics Store</option>
-                  <option value="Office Supplies">Office Supplies</option>
-                  <option value="Storage Facility">Storage Facility</option>
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setFilters({})}
-                  className="w-full"
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      {/* Items Table/Grid */}
-      <Card>
-        {viewMode === 'table' ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHeaderCell>Item Details</TableHeaderCell>
-                <TableHeaderCell>SKU</TableHeaderCell>
-                <TableHeaderCell>Category</TableHeaderCell>
-                <TableHeaderCell>Current Stock</TableHeaderCell>
-                <TableHeaderCell>Location</TableHeaderCell>
-                <TableHeaderCell>Price</TableHeaderCell>
-                <TableHeaderCell>GST</TableHeaderCell>
-                <TableHeaderCell>Status</TableHeaderCell>
-                <TableHeaderCell>Actions</TableHeaderCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredItems.length === 0 ? (
-                <TableRow>
-                  <TableCell className="text-center py-8" colSpan={9}>
-                    <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500 mb-2">No inventory items found</p>
-                    <Button onClick={() => setShowAddForm(true)}>
-                      Add your first item
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-gray-900">{item.name}</p>
-                        <p className="text-sm text-gray-500">{item.description}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-mono text-sm">{item.sku}</span>
-                    </TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <span className="font-medium">{item.currentStock}</span>
-                        <span className="text-gray-500 ml-1">{item.unit}</span>
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getStockStatusColor(item)}`}>
-                          {getStockStatusText(item)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        {item.warehouse && (
-                          <p className="font-medium text-gray-900">{item.warehouse}</p>
-                        )}
-                        {item.location && (
-                          <p className="text-sm text-gray-600">{item.location}</p>
-                        )}
-                        {item.rack && (
-                          <p className="text-xs text-gray-500">Rack: {item.rack}</p>
-                        )}
-                        {!item.warehouse && !item.location && !item.rack && (
-                          <p className="text-sm text-gray-400">No location set</p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">₹{item.sellingPrice.toLocaleString()}</p>
-                        <p className="text-sm text-gray-500">Cost: ₹{item.costPrice.toLocaleString()}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{item.gstRate}%</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {item.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedItem(item)}
-                        >
-                          <Eye size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedItem(item);
-                            setShowAddForm(true);
-                          }}
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteItem(item.id)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredItems.map((item) => (
-                <Card key={item.id} className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">{item.name}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{item.sku}</p>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStockStatusColor(item)}`}>
-                      {getStockStatusText(item)}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Stock:</span>
-                      <span className="text-sm font-medium">{item.currentStock} {item.unit}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Price:</span>
-                      <span className="text-sm font-medium">₹{item.sellingPrice.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Category:</span>
-                      <span className="text-sm">{item.category}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <Button variant="outline" size="sm" onClick={() => setSelectedItem(item)}>
-                      <Eye size={14} className="mr-1" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => {
-                      setSelectedItem(item);
-                      setShowAddForm(true);
-                    }}>
-                      <Edit size={14} className="mr-1" />
-                      Edit
-                    </Button>
-                  </div>
-                </Card>
+              <option value="">All Categories</option>
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
               ))}
-            </div>
+            </select>
           </div>
-        )}
+          
+          <div className="flex items-end">
+            <Button variant="outline" onClick={clearFilters} className="w-full">
+              <Filter size={16} className="mr-2" />
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+        
+        <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+          Showing {filteredItems.length} of {items.length} items
+        </div>
       </Card>
 
-      {/* Add/Edit Item Modal */}
-      <ItemForm
-        item={selectedItem}
-        isOpen={showAddForm}
-        onClose={() => {
-          setShowAddForm(false);
-          setSelectedItem(null);
-        }}
-      />
+      {/* Inventory Table */}
+      <Card>
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Inventory Items</h3>
+        </div>
+        
+        <div className="overflow-x-auto">
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-12">
+              <Package size={48} className="mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No items found</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {searchTerm || categoryFilter ? 'Try adjusting your search filters.' : 'Get started by adding your first inventory item.'}
+              </p>
+              {!searchTerm && !categoryFilter && (
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus size={16} className="mr-2" />
+                  Add First Item
+                </Button>
+              )}
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="text-left p-4 font-semibold text-gray-900 dark:text-white">SKU</th>
+                  <th className="text-left p-4 font-semibold text-gray-900 dark:text-white">Item</th>
+                  <th className="text-left p-4 font-semibold text-gray-900 dark:text-white">Category</th>
+                  <th className="text-left p-4 font-semibold text-gray-900 dark:text-white">HSN/SAC</th>
+                  <th className="text-right p-4 font-semibold text-gray-900 dark:text-white">Cost Price</th>
+                  <th className="text-right p-4 font-semibold text-gray-900 dark:text-white">Selling Price</th>
+                  <th className="text-right p-4 font-semibold text-gray-900 dark:text-white">Stock</th>
+                  <th className="text-center p-4 font-semibold text-gray-900 dark:text-white">Status</th>
+                  <th className="text-center p-4 font-semibold text-gray-900 dark:text-white">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredItems.map((item) => {
+                  const stockStatus = getStockStatus(item);
+                  return (
+                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="p-4 font-mono text-sm text-gray-900 dark:text-white">{item.sku}</td>
+                      <td className="p-4">
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">{item.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{item.description}</div>
+                        </div>
+                      </td>
+                      <td className="p-4 text-gray-700 dark:text-gray-300">{item.category}</td>
+                      <td className="p-4 font-mono text-sm text-gray-700 dark:text-gray-300">{item.hsnSacCode}</td>
+                      <td className="p-4 text-right font-medium text-gray-900 dark:text-white">
+                        {formatCurrency(item.costPrice)}
+                      </td>
+                      <td className="p-4 text-right font-medium text-gray-900 dark:text-white">
+                        {formatCurrency(item.sellingPrice)}
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex flex-col items-end">
+                          <span className={`font-medium ${stockStatus.color.split(' ')[0]}`}>
+                            {item.currentStock} {item.unit}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Min: {item.minStock}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${stockStatus.color}`}>
+                          {stockStatus.label}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleView(item)}
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleEdit(item)}
+                            title="Edit Item"
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDelete(item.id)}
+                            className="text-red-600 hover:text-red-700"
+                            title="Delete Item"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </Card>
 
-      {/* Item Details Modal */}
-      {selectedItem && !showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold">{selectedItem.name}</h2>
-              <Button variant="ghost" onClick={() => setSelectedItem(null)}>
-                ×
+      {/* Add/Edit Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {editingItem ? 'Edit Item' : 'Add New Item'}
+              </h2>
+              <Button variant="ghost" onClick={resetForm}>
+                ✕
               </Button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-medium mb-3">Basic Information</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">SKU:</span>
-                    <span className="font-mono">{selectedItem.sku}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Category:</span>
-                    <span>{selectedItem.category}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Brand:</span>
-                    <span>{selectedItem.brand || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">HSN Code:</span>
-                    <span>{selectedItem.hsnCode}</span>
-                  </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Item Name *"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  required
+                />
+                <Input
+                  label="SKU *"
+                  type="text"
+                  value={formData.sku}
+                  onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="HSN/SAC Code *"
+                  type="text"
+                  value={formData.hsnSacCode}
+                  onChange={(e) => setFormData({...formData, hsnSacCode: e.target.value})}
+                  placeholder="e.g. 9401 for Furniture"
+                  required
+                />
+              </div>
+
+              <Input
+                label="Description"
+                type="text"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category *</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Furniture">Furniture</option>
+                    <option value="Services">Services</option>
+                    <option value="Stationery">Stationery</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Food & Beverage">Food & Beverage</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit *</label>
+                  <select
+                    value={formData.unit}
+                    onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="Pieces">Pieces</option>
+                    <option value="Kilograms">Kilograms</option>
+                    <option value="Liters">Liters</option>
+                    <option value="Meters">Meters</option>
+                    <option value="Hours">Hours</option>
+                    <option value="Days">Days</option>
+                  </select>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="font-medium mb-3">Stock & Pricing</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Current Stock:</span>
-                    <span className="font-medium">{selectedItem.currentStock} {selectedItem.unit}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Reorder Level:</span>
-                    <span>{selectedItem.reorderLevel} {selectedItem.unit}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Cost Price:</span>
-                    <span>₹{selectedItem.costPrice.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Selling Price:</span>
-                    <span>₹{selectedItem.sellingPrice.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Margin:</span>
-                    <span className="text-green-600">₹{selectedItem.margin.toLocaleString()} ({selectedItem.marginPercentage.toFixed(1)}%)</span>
-                  </div>
-                </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Cost Price"
+                  type="number"
+                  value={formData.costPrice}
+                  onChange={(e) => setFormData({...formData, costPrice: parseFloat(e.target.value) || 0})}
+                  min="0"
+                  step="0.01"
+                />
+                <Input
+                  label="Selling Price *"
+                  type="number"
+                  value={formData.sellingPrice}
+                  onChange={(e) => setFormData({...formData, sellingPrice: parseFloat(e.target.value) || 0})}
+                  min="0"
+                  step="0.01"
+                  required
+                />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Input
+                  label="Current Stock"
+                  type="number"
+                  value={formData.currentStock}
+                  onChange={(e) => setFormData({...formData, currentStock: parseInt(e.target.value) || 0})}
+                  min="0"
+                />
+                <Input
+                  label="Min Stock"
+                  type="number"
+                  value={formData.minStock}
+                  onChange={(e) => setFormData({...formData, minStock: parseInt(e.target.value) || 0})}
+                  min="0"
+                />
+                <Input
+                  label="Max Stock"
+                  type="number"
+                  value={formData.maxStock}
+                  onChange={(e) => setFormData({...formData, maxStock: parseInt(e.target.value) || 0})}
+                  min="0"
+                />
+                <Input
+                  label="Reorder Level"
+                  type="number"
+                  value={formData.reorderLevel}
+                  onChange={(e) => setFormData({...formData, reorderLevel: parseInt(e.target.value) || 0})}
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value as 'Active' | 'Inactive'})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button type="submit" variant="primary" className="flex-1">
+                  <Package size={16} className="mr-2" />
+                  {editingItem ? 'Update Item' : 'Add Item'}
+                </Button>
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Modal */}
+      {showViewModal && viewingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Item Details</h2>
+              <Button variant="ghost" onClick={() => setShowViewModal(false)}>
+                ✕
+              </Button>
             </div>
-            
-            <div className="mt-6">
-              <h3 className="font-medium mb-3">Description</h3>
-              <p className="text-gray-700">{selectedItem.description}</p>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{viewingItem.name}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{viewingItem.description}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">SKU</label>
+                  <p className="text-gray-900 dark:text-white font-mono">{viewingItem.sku}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Category</label>
+                  <p className="text-gray-900 dark:text-white">{viewingItem.category}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">HSN/SAC Code</label>
+                  <p className="text-gray-900 dark:text-white font-mono">{viewingItem.hsnSacCode}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Unit</label>
+                  <p className="text-gray-900 dark:text-white">{viewingItem.unit}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    viewingItem.status === 'Active'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                      : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                  }`}>
+                    {viewingItem.status}
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Cost Price</label>
+                  <p className="text-gray-900 dark:text-white">{formatCurrency(viewingItem.costPrice)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Selling Price</label>
+                  <p className="text-gray-900 dark:text-white">{formatCurrency(viewingItem.sellingPrice)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Current Stock</label>
+                  <p className="text-gray-900 dark:text-white">{viewingItem.currentStock} {viewingItem.unit}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Stock Levels</label>
+                  <p className="text-gray-900 dark:text-white">
+                    Min: {viewingItem.minStock}, Max: {viewingItem.maxStock}, Reorder: {viewingItem.reorderLevel}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button onClick={() => {
+                  setShowViewModal(false);
+                  handleEdit(viewingItem);
+                }}>
+                  <Edit size={16} className="mr-2" />
+                  Edit Item
+                </Button>
+                <Button variant="outline" onClick={() => setShowViewModal(false)}>
+                  Close
+                </Button>
+              </div>
             </div>
           </div>
         </div>
