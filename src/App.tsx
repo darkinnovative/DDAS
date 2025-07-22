@@ -16,7 +16,8 @@ import { Settings } from './components/features/settings';
 import { EwayBills } from './components/features/eway-bills';
 import { EInvoices } from './components/features/einvoices';
 import { Inventory } from './components/features/inventory';
-import { BalanceSheet, SalesReports, PurchaseReports, GSTR1Reports, GSTR3BReports, ProfitLoss } from './components/features/reports';
+import { PurchaseOrders } from './components/features/purchase-orders';
+import { BalanceSheet, SalesReports, PurchaseReports, GSTR1Reports, GSTR3BReports, ProfitLoss, StockReport } from './components/features/reports';
 
 function AppLayout() {
   console.log('🎨 AppLayout is rendering...');
@@ -80,21 +81,11 @@ function AppLayout() {
             <Route path="/reports/purchase" element={<PurchaseReports />} />
             <Route path="/reports/gstr1" element={<GSTR1Reports />} />
             <Route path="/reports/gstr3b" element={<GSTR3BReports />} />
+            <Route path="/stock-report" element={<StockReport />} />
             <Route path="/eway-bills" element={<EwayBills />} />
             <Route path="/e-invoices" element={<EInvoices />} />
             <Route path="/company" element={<Settings />} />
-            <Route path="/purchase-orders" element={
-              <div className="p-6">
-                <div className="text-center">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                    Purchase Orders
-                  </h1>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Purchase Orders management coming soon...
-                  </p>
-                </div>
-              </div>
-            } />
+            <Route path="/purchase-orders" element={<PurchaseOrders />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={
               <div className="flex items-center justify-center h-full">

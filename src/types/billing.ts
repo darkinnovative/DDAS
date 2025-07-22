@@ -217,3 +217,58 @@ export interface Company {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface PurchaseOrderItem {
+  id: string;
+  description: string;
+  specifications?: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  gstRate: number;
+  gstAmount: number;
+  hsnCode?: string;
+  taxableValue: number;
+  unit: string;
+  deliveryDate?: Date;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  poNumber: string;
+  vendorId: string;
+  vendor?: Vendor;
+  items: PurchaseOrderItem[];
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  cgstAmount: number;
+  sgstAmount: number;
+  igstAmount: number;
+  totalGst: number;
+  total: number;
+  status: 'draft' | 'sent' | 'approved' | 'received' | 'cancelled' | 'partially_received';
+  orderDate: Date;
+  expectedDeliveryDate: Date;
+  actualDeliveryDate?: Date;
+  approvedBy?: string;
+  approvedDate?: Date;
+  notes?: string;
+  terms?: string;
+  placeOfDelivery?: string;
+  gstType: 'intrastate' | 'interstate';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  paymentTerms: 'immediate' | 'net15' | 'net30' | 'net45' | 'net60';
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  contactPerson?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
