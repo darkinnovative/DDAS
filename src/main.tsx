@@ -1,34 +1,22 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
+import './index.css'
 
-console.log('📱 Main.tsx loaded');
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('Failed to find the root element');
+}
+
+const root = ReactDOM.createRoot(rootElement);
 
 try {
-  const rootElement = document.getElementById('root');
-  console.log('🎯 Root element:', rootElement);
-  
-  if (!rootElement) {
-    console.error('❌ Root element not found!');
-    throw new Error('Root element not found');
-  }
-
-  const root = createRoot(rootElement);
-  console.log('🌟 React root created');
-  
   root.render(
-    <StrictMode>
+    <React.StrictMode>
       <App />
-    </StrictMode>
+    </React.StrictMode>
   );
-  console.log('✅ App rendered successfully');
 } catch (error) {
-  console.error('💥 Error in main.tsx:', error);
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  document.body.innerHTML = `<div style="padding: 20px; color: red; font-family: Arial, sans-serif;">
-    <h1>Application Error</h1>
-    <p>Error: ${errorMessage}</p>
-    <p>Check the console for more details.</p>
-  </div>`;
+  console.error('Failed to render the app:', error);
 }

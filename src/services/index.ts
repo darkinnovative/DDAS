@@ -214,4 +214,8 @@ export class PaymentService {
   }
 }
 
+// Export the new FastAPI services
+export * from './authApi';
+export * from './invoiceApi';
+
 export default StorageService;

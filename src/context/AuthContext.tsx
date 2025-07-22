@@ -85,7 +85,6 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  console.log('AuthProvider is initializing...');
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   // Update dark mode based on theme preference

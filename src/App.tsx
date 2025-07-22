@@ -20,17 +20,12 @@ import { PurchaseOrders } from './components/features/purchase-orders';
 import { BalanceSheet, SalesReports, PurchaseReports, GSTR1Reports, GSTR3BReports, ProfitLoss, StockReport } from './components/features/reports';
 
 function AppLayout() {
-  console.log('🎨 AppLayout is rendering...');
-  
   const { isAuthenticated } = useAuth();
-  console.log('🔐 isAuthenticated:', isAuthenticated);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
-  
-  console.log('✨ AppLayout rendered successfully');
 
   if (!isAuthenticated) {
     return <Login />;
@@ -110,10 +105,7 @@ function AppLayout() {
 }
 
 function App() {
-  console.log('🚀 App component is loading...');
-  
   try {
-    console.log('🔧 Setting up providers...');
     return (
       <AuthProvider>
         <BillingProvider>
